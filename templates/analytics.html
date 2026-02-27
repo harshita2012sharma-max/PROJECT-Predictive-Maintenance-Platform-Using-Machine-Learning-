@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | Predictive Maintenance Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="brand-logo">PM</div>
+                    <div class="brand-text">
+                        <div class="brand-name">Predictive Maintenance</div>
+                        <div class="brand-tagline">AI-Powered Equipment Analytics</div>
+                    </div>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Diagnostics</a>
+                    <a href="/analytics" class="nav-link active">Analytics Dashboard</a>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text">System Online</span>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">Analytics Dashboard</h2>
+                    <p class="page-description">Real-time equipment performance monitoring and insights</p>
+                </div>
+            </div>
+
+            {% if has_data %}
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Equipment</div>
+                    <div class="kpi-value">{{ total_machines }}</div>
+                    <div class="kpi-trend kpi-neutral">Active Machines</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Critical Alerts</div>
+                    <div class="kpi-value kpi-danger">{{ critical_count }}</div>
+                    <div class="kpi-trend kpi-down">Urgent Attention Required</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">System Health Score</div>
+                    <div class="kpi-value kpi-success">{{ avg_health }}%</div>
+                    <div class="kpi-trend kpi-up">Overall Fleet Health</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Prevented Failures</div>
+                    <div class="kpi-value kpi-success">{{ prevented_failures }}</div>
+                    <div class="kpi-trend kpi-up">Early Detections</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Temperature Distribution</h3>
+                        <p class="chart-subtitle">Current operating temperature ranges</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Priority Distribution</h3>
+                        <p class="chart-subtitle">Maintenance priority classification</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card chart-large">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Remaining Useful Life (RUL) Analysis</h3>
+                        <p class="chart-subtitle">Estimated days until failure by equipment unit</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="rulChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Predictions</h3>
+                    <p class="card-subtitle">Latest {{ recent_data|length }} diagnostic analyses</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Machine ID</th>
+                                <th>Timestamp</th>
+                                <th>Failure Probability</th>
+                                <th>RUL (Days)</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in recent_data %}
+                            <tr>
+                                <td><strong>#{{ pred.machine_id }}</strong></td>
+                                <td>{{ pred.timestamp }}</td>
+                                <td>
+                                    <span class="badge {% if pred.failure_prob > 70 %}badge-danger{% elif pred.failure_prob > 40 %}badge-warning{% else %}badge-success{% endif %}">
+                                        {{ "%.1f"|format(pred.failure_prob) }}%
+                                    </span>
+                                </td>
+                                <td>{{ pred.days }}</td>
+                                <td>
+                                    <span class="badge badge-{{ pred.priority|lower }}">
+                                        {{ pred.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge {% if pred.status == 'Critical' %}status-error{% elif pred.status == 'At Risk' %}status-warning{% else %}status-success{% endif %}">
+                                        {{ pred.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% else %}
+            
+            <div class="empty-state">
+                <svg class="empty-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="8" y="8" width="48" height="48" rx="8"/>
+                    <path d="M20 32h24M32 20v24"/>
+                    <circle cx="32" cy="32" r="4" stroke-width="3"/>
+                </svg>
+                <h3 class="empty-title">No Analytics Data Available</h3>
+                <p class="empty-message">Run diagnostics from the main page to populate the analytics dashboard with real-time data.</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 1.5rem;">Go to Diagnostics</a>
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2026 Predictive Maintenance Platform v2.0 | Enterprise Edition</p>
+        </div>
+    </footer>
+
+    <!-- Load Chart.js BEFORE our script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    {% if has_data %}
+    <script>
+        // Get the data from Flask
+        const tempData = {{ temp_data | tojson }};
+        const priorityData = {{ priority_data | tojson }};
+        const rulLabels = {{ rul_labels | tojson }};
+        const rulValues = {{ rul_values | tojson }};
+
+        console.log('Temperature data:', tempData);
+        console.log('Priority data:', priorityData);
+        console.log('RUL labels:', rulLabels);
+        console.log('RUL values:', rulValues);
+
+        // Wait for page to load
+        window.addEventListener('load', function() {
+            console.log('Page loaded, creating charts...');
+
+            // CHART 1: Temperature Distribution
+            const tempCtx = document.getElementById('temperatureChart');
+            if (tempCtx) {
+                new Chart(tempCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Normal\n(<75°C)', 'Elevated\n(75-85°C)', 'High\n(85-95°C)', 'Critical\n(>95°C)'],
+                        datasets: [{
+                            label: 'Machines',
+                            data: tempData,
+                            backgroundColor: [
+                                '#10B981',
+                                '#F59E0B',
+                                '#F97316',
+                                '#EF4444'
+                            ],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+                console.log('Temperature chart created');
+            }
+
+            // CHART 2: Priority Distribution
+            const priorityCtx = document.getElementById('priorityChart');
+            if (priorityCtx) {
+                new Chart(priorityCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        datasets: [{
+                            data: priorityData,
+                            backgroundColor: [
+                                '#10B981',
+                                '#F59E0B',
+                                '#F97316',
+                                '#EF4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                console.log('Priority chart created');
+            }
+
+            // CHART 3: RUL
+            const rulCtx = document.getElementById('rulChart');
+            if (rulCtx) {
+                new Chart(rulCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: rulLabels,
+                        datasets: [{
+                            label: 'Days Until Failure',
+                            data: rulValues,
+                            backgroundColor: rulValues.map(val => {
+                                if (val < 14) return '#EF4444';
+                                if (val < 60) return '#F59E0B';
+                                return '#10B981';
+                            }),
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Days'
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('RUL chart created');
+            }
+
+            console.log('All charts created successfully!');
+        });
+    </script>
+    {% endif %}
+
+</body>
+</html>

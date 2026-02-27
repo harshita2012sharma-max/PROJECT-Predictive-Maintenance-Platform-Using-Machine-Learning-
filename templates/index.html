@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment Diagnostics | Predictive Maintenance Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="brand-logo">PM</div>
+                    <div class="brand-text">
+                        <div class="brand-name">Predictive Maintenance</div>
+                        <div class="brand-tagline">AI-Powered Equipment Analytics</div>
+                    </div>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link active">Diagnostics</a>
+                    <a href="/analytics" class="nav-link">Analytics Dashboard</a>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text">System Online</span>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">Equipment Diagnostics</h2>
+                    <p class="page-description">Real-time sensor data analysis and predictive failure detection</p>
+                </div>
+            </div>
+
+            {% if error %}
+            <div class="alert">
+                <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/>
+                </svg>
+                <div class="alert-content">
+                    <strong class="alert-title">System Error</strong>
+                    <p class="alert-message">{{ error }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid">
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Sensor Data Input</h3>
+                        <p class="card-subtitle">Enter current equipment operational parameters</p>
+                    </div>
+                    
+                    <form method="POST" action="/predict" class="form">
+                        
+                        <div class="form-section">
+                            <label class="form-label">Machine ID</label>
+                            <input type="number" name="machine_id" class="form-input" 
+                                   value="{{ machine_id or 1 }}" min="1" required>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 class="section-title">Thermal Monitoring</h4>
+                            <div class="input-row">
+                                <div>
+                                    <label class="form-label">Temperature (°C)</label>
+                                    <input type="number" step="0.01" name="temperature" class="form-input" placeholder="75.5" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Power Consumption (kW)</label>
+                                    <input type="number" step="0.01" name="power_consumption" class="form-input" placeholder="45.2" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 class="section-title">Mechanical Sensors</h4>
+                            <div class="input-row">
+                                <div>
+                                    <label class="form-label">Vibration (Hz)</label>
+                                    <input type="number" step="0.01" name="vibration" class="form-input" placeholder="2.3" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Pressure (bar)</label>
+                                    <input type="number" step="0.01" name="pressure" class="form-input" placeholder="8.5" required>
+                                </div>
+                            </div>
+                            <div class="input-row">
+                                <div>
+                                    <label class="form-label">RPM</label>
+                                    <input type="number" step="0.01" name="rpm" class="form-input" placeholder="1450" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Noise Level (dB)</label>
+                                    <input type="number" step="0.01" name="noise_level" class="form-input" placeholder="72" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 class="section-title">Operational Metrics</h4>
+                            <div class="input-row">
+                                <div>
+                                    <label class="form-label">Oil Quality Index</label>
+                                    <input type="number" step="0.01" name="oil_quality_index" class="form-input" placeholder="0.85" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Operating Hours</label>
+                                    <input type="number" step="0.01" name="operating_hours" class="form-input" placeholder="8450" required>
+                                </div>
+                            </div>
+                            <div class="input-row">
+                                <div>
+                                    <label class="form-label">Production Load (%)</label>
+                                    <input type="number" step="0.01" name="production_load" class="form-input" placeholder="75" min="0" max="100" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Equipment Age (years)</label>
+                                    <input type="number" step="0.01" name="equipment_age" class="form-input" placeholder="5.2" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            Run Diagnostic Analysis
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Diagnostic Results</h3>
+                        <p class="card-subtitle">AI-powered predictive analysis</p>
+                    </div>
+
+                    {% if result %}
+                    
+                    {% if alert %}
+                    <div class="alert-banner alert-{{ alert|lower }}">
+                        <div class="alert-banner-content">
+                            <h4 class="alert-banner-title">{{ alert }} Priority Alert</h4>
+                            <p class="alert-banner-message">
+                                {% if alert == "CRITICAL" %}
+                                    Immediate maintenance required - Equipment failure imminent
+                                {% elif alert == "HIGH" %}
+                                    Schedule maintenance within 7 days to prevent failure
+                                {% else %}
+                                    Equipment operating within normal parameters
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="results-grid">
+                        
+                        <div class="result-card {% if result.will_fail %}result-danger{% else %}result-success{% endif %}">
+                            <span class="result-label">Failure Prediction</span>
+                            <div class="result-value">{{ "Will Fail" if result.will_fail else "Operational" }}</div>
+                            <span class="result-meta">Random Forest Classifier</span>
+                        </div>
+
+                        <div class="result-card result-warning">
+                            <span class="result-label">Failure Probability</span>
+                            <div class="result-value">{{ "%.1f"|format(result.failure_probability * 100) }}%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ result.failure_probability * 100 }}%"></div>
+                            </div>
+                            <span class="result-meta">Model Confidence Score</span>
+                        </div>
+
+                        <div class="result-card result-info">
+                            <span class="result-label">Remaining Useful Life</span>
+                            <div class="result-value">{{ "%.0f"|format(result.days_until_failure) }} Days</div>
+                            <span class="result-meta">Estimated Time to Failure</span>
+                        </div>
+
+                        <div class="result-card result-priority">
+                            <span class="result-label">Maintenance Priority</span>
+                            <div class="result-value">{{ result.priority }}</div>
+                            <span class="result-meta">Decision Tree Classification</span>
+                        </div>
+
+                    </div>
+
+                    <div class="metrics-table">
+                        <h4 class="table-title">Diagnostic Summary</h4>
+                        <table class="table">
+                            <tr>
+                                <td class="table-label">Machine ID</td>
+                                <td class="table-value">#{{ machine_id|default(1) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="table-label">Model Confidence</td>
+                                <td class="table-value">{{ "%.2f"|format(result.failure_probability * 100) }}%</td>
+                            </tr>
+                            <tr>
+                                <td class="table-label">Days Until Failure</td>
+                                <td class="table-value">{{ "%.0f"|format(result.days_until_failure) }} days</td>
+                            </tr>
+                            <tr>
+                                <td class="table-label">Priority Classification</td>
+                                <td class="table-value">{{ result.priority }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="actions-card">
+                        <h4 class="actions-title">Recommended Actions</h4>
+                        <ul class="actions-list">
+                            {% if result.will_fail %}
+                                <li class="action-item action-critical">Schedule immediate equipment inspection</li>
+                                <li class="action-item action-critical">Order replacement parts and materials</li>
+                                <li class="action-item action-critical">Alert maintenance team for urgent intervention</li>
+                            {% else %}
+                                <li class="action-item action-normal">Continue routine monitoring schedule</li>
+                                <li class="action-item action-normal">Maintain current preventive maintenance plan</li>
+                                <li class="action-item action-normal">System operating within acceptable parameters</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    {% else %}
+                    
+                    <div class="empty-state">
+                        <svg class="empty-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="8" y="8" width="48" height="48" rx="8"/>
+                            <path d="M20 32h24M32 20v24"/>
+                        </svg>
+                        <h3 class="empty-title">No Analysis Available</h3>
+                        <p class="empty-message">Enter equipment sensor data in the form to begin predictive analysis</p>
+                    </div>
+
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">© 2026 Predictive Maintenance Platform v2.0 | Enterprise Edition</p>
+        </div>
+    </footer>
+
+</body>
+</html>
